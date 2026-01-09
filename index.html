@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <title>NyaGPT</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -11,70 +10,121 @@
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: linear-gradient(135deg, #6a5cff, #9f7aea);
+      background: #0f0f14;
       color: white;
       display: flex;
-      justify-content: center;
-      align-items: center;
+      flex-direction: column;
       height: 100vh;
     }
 
-    .app {
-      background: rgba(0,0,0,0.25);
-      border-radius: 20px;
-      padding: 24px;
-      width: 90%;
-      max-width: 360px;
+    header {
+      padding: 12px;
+      background: #1c1c26;
       text-align: center;
+      font-weight: 600;
     }
 
-    h1 {
-      margin-top: 0;
+    #chat {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+    }
+
+    .msg {
+      max-width: 80%;
+      margin-bottom: 8px;
+      padding: 8px 12px;
+      border-radius: 14px;
+      line-height: 1.4;
+    }
+
+    .user {
+      background: #4a8cff;
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+
+    .bot {
+      background: #2a2a38;
+      margin-right: auto;
+      border-bottom-left-radius: 4px;
+    }
+
+    footer {
+      display: flex;
+      padding: 8px;
+      background: #1c1c26;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      font-size: 16px;
     }
 
     button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 12px;
+      margin-left: 8px;
+      padding: 10px 14px;
+      border-radius: 10px;
       border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      cursor: pointer;
+      background: #ff7ac8;
+      color: black;
+      font-weight: 600;
     }
-
-    .normal { background: #ffffff; color: #000; }
-    .anime { background: #ffb7da; color: #000; }
-    .serious { background: #2d3748; color: #fff; }
   </style>
 </head>
 <body>
 
-  <div class="app">
-    <h1>NyaGPT</h1>
-    <p>Выбери стиль общения</p>
+<header>🐱 NyaGPT</header>
 
-    <button class="normal" onclick="setStyle('normal')">
-      Обычный
-    </button>
+<div id="chat"></div>
 
-    <button class="anime" onclick="setStyle('anime')">
-      Аниме няшка 🐾
-    </button>
+<footer>
+  <input id="input" placeholder="Напиши что-нибудь..." />
+  <button onclick="send()">➤</button>
+</footer>
 
-    <button class="serious" onclick="setStyle('serious')">
-      Серьёзный
-    </button>
-  </div>
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.expand();
 
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
+  const chat = document.getElementById("chat");
+  const input = document.getElementById("input");
 
-    function setStyle(style) {
-      tg.sendData(style);
-      tg.showAlert("Стиль выбран: " + style);
-    }
-  </script>
+  function addMessage(text, who) {
+    const div = document.createElement("div");
+    div.className = "msg " + who;
+    div.textContent = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function botReply(userText) {
+    const replies = [
+      "Ня~ я тебя понял 🐾",
+      "Хмм… звучит интересно 😼",
+      "Я подумаю об этом, мяу~",
+      "Ты такой умный, nya 🩷",
+      "Можешь рассказать подробнее?"
+    ];
+
+    setTimeout(() => {
+      addMessage(replies[Math.floor(Math.random() * replies.length)], "bot");
+    }, 600);
+  }
+
+  function send() {
+    const text = input.value.trim();
+    if (!text) return;
+
+    addMessage(text, "user");
+    input.value = "";
+    botReply(text);
+  }
+</script>
 
 </body>
 </html>
