@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reflecta</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #6a5cff, #9f7aea);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .app {
+      background: rgba(0,0,0,0.25);
+      border-radius: 20px;
+      padding: 24px;
+      width: 90%;
+      max-width: 360px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .normal { background: #ffffff; color: #000; }
+    .anime { background: #ffb7da; color: #000; }
+    .serious { background: #2d3748; color: #fff; }
+  </style>
+</head>
+<body>
+
+  <div class="app">
+    <h1>Reflecta</h1>
+    <p>Выбери стиль общения</p>
+
+    <button class="normal" onclick="setStyle('normal')">
+      Обычный
+    </button>
+
+    <button class="anime" onclick="setStyle('anime')">
+      Аниме няшка 🐾
+    </button>
+
+    <button class="serious" onclick="setStyle('serious')">
+      Серьёзный
+    </button>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    function setStyle(style) {
+      tg.sendData(style);
+      tg.showAlert("Стиль выбран: " + style);
+    }
+  </script>
+
+</body>
+</html>
