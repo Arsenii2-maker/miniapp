@@ -3,16 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NyaGPT</title>
-
-  <!-- Telegram Mini App API -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
+  <title>NyaGPT 🐱</title>
   <style>
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #0f0f12;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0f0f14;
       color: #fff;
       display: flex;
       flex-direction: column;
@@ -21,130 +17,161 @@
 
     header {
       padding: 12px;
-      text-align: center;
-      background: #15151c;
-      font-weight: bold;
+      background: #1c1c24;
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+    }
+
+    header button {
+      background: #2a2a36;
+      border: none;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    header button.active {
+      background: #ff7ac8;
+      color: #000;
     }
 
     #chat {
       flex: 1;
-      overflow-y: auto;
       padding: 12px;
+      overflow-y: auto;
     }
 
-    .message {
+    .msg {
       margin-bottom: 10px;
-      max-width: 80%;
-      padding: 10px 14px;
-      border-radius: 16px;
       line-height: 1.4;
-      white-space: pre-wrap;
     }
 
     .user {
-      background: #4b6bff;
-      align-self: flex-end;
-      margin-left: auto;
+      text-align: right;
+      color: #9fd3ff;
     }
 
     .bot {
-      background: #2a2a34;
-      align-self: flex-start;
-      margin-right: auto;
+      text-align: left;
+      color: #ffd6f3;
     }
 
     footer {
       display: flex;
       padding: 10px;
-      background: #15151c;
+      background: #1c1c24;
       gap: 8px;
     }
 
     input {
       flex: 1;
       padding: 10px;
-      border-radius: 12px;
+      border-radius: 14px;
       border: none;
       outline: none;
       font-size: 16px;
     }
 
-    button {
-      padding: 10px 14px;
-      border-radius: 12px;
+    button.send {
+      background: #ff7ac8;
       border: none;
-      background: #4b6bff;
-      color: white;
+      padding: 10px 14px;
+      border-radius: 14px;
       font-size: 16px;
       cursor: pointer;
     }
-
-    button:disabled {
-      opacity: 0.6;
-    }
   </style>
 </head>
-
 <body>
-  <header>NyaGPT 🐱</header>
 
-  <div id="chat"></div>
+<header id="modes"></header>
 
-  <footer>
-    <input id="input" placeholder="Напиши сообщение…" />
-    <button id="send">➤</button>
-  </footer>
+<div id="chat"></div>
 
-  <script>
-    const tg = window.Telegram?.WebApp;
-    if (tg) tg.expand();
+<footer>
+  <input id="input" placeholder="Напиши что-нибудь…" />
+  <button class="send" onclick="send()">➤</button>
+</footer>
 
-    const chat = document.getElementById("chat");
-    const input = document.getElementById("input");
-    const sendBtn = document.getElementById("send");
+<script>
+  const API_URL = "https://nyagpt-server.vercel.app/api/chat";
 
-    function addMessage(text, who) {
-      const div = document.createElement("div");
-      div.className = "message " + who;
-      div.textContent = text;
-      chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
+  const MODES = {
+    nya: "🐱 Nya",
+    smart: "🧠 Smart",
+    philosopher: "🎭 Philosopher",
+    bestie: "😏 Bestie",
+    study: "🧑‍🏫 Study",
+    creative: "🔮 Creative"
+  };
+
+  let currentMode = "smart";
+
+  const modesDiv = document.getElementById("modes");
+  const chat = document.getElementById("chat");
+  const input = document.getElementById("input");
+
+  for (const key in MODES) {
+    const btn = document.createElement("button");
+    btn.textContent = MODES[key];
+    btn.onclick = () => setMode(key, btn);
+    if (key === currentMode) btn.classList.add("active");
+    modesDiv.appendChild(btn);
+  }
+
+  function setMode(mode, button) {
+    currentMode = mode;
+    document.querySelectorAll("header button").forEach(b => b.classList.remove("active"));
+    button.classList.add("active");
+    addBot(`Режим: ${MODES[mode]}`);
+  }
+
+  function addUser(text) {
+    const div = document.createElement("div");
+    div.className = "msg user";
+    div.textContent = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function addBot(text) {
+    const div = document.createElement("div");
+    div.className = "msg bot";
+    div.textContent = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  async function send() {
+    const text = input.value.trim();
+    if (!text) return;
+
+    input.value = "";
+    addUser(text);
+    addBot("…думаю 🤔");
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: text,
+          mode: currentMode
+        })
+      });
+
+      const data = await res.json();
+      chat.lastChild.textContent = data.reply || "😿 Пустой ответ";
+    } catch (e) {
+      chat.lastChild.textContent = "😿 Ошибка соединения";
     }
+  }
+</script>
 
-    async function sendMessage() {
-      const text = input.value.trim();
-      if (!text) return;
-
-      addMessage(text, "user");
-      input.value = "";
-      sendBtn.disabled = true;
-
-      try {
-        const res = await fetch("https://nyagpt-server.vercel.app/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: text,
-            mode: "nya",
-            model: "gpt-4o-mini"
-          })
-        });
-
-        const data = await res.json();
-        addMessage(data.reply || "…что-то пошло не так 😿", "bot");
-      } catch (e) {
-        addMessage("Ошибка соединения 😿", "bot");
-      }
-
-      sendBtn.disabled = false;
-    }
-
-    sendBtn.onclick = sendMessage;
-    input.addEventListener("keydown", e => {
-      if (e.key === "Enter") sendMessage();
-    });
-
-    addMessage("Привет! Я NyaGPT 🐱 Напиши что-нибудь~", "bot");
-  </script>
 </body>
 </html>
