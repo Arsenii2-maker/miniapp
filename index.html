@@ -1,176 +1,77 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NyaGPT 🐱</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #0f0f14;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
-
-    header {
-      padding: 12px;
-      background: #1c1c24;
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-    }
-
-    header button {
-      background: #2a2a36;
-      border: none;
-      color: #fff;
-      padding: 6px 10px;
-      border-radius: 12px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    header button.active {
-      background: #ff7ac8;
-      color: #000;
-    }
-
-    #chat {
-      flex: 1;
-      padding: 12px;
-      overflow-y: auto;
-    }
-
-    .msg {
-      margin-bottom: 10px;
-      line-height: 1.4;
-    }
-
-    .user {
-      text-align: right;
-      color: #9fd3ff;
-    }
-
-    .bot {
-      text-align: left;
-      color: #ffd6f3;
-    }
-
-    footer {
-      display: flex;
-      padding: 10px;
-      background: #1c1c24;
-      gap: 8px;
-    }
-
-    input {
-      flex: 1;
-      padding: 10px;
-      border-radius: 14px;
-      border: none;
-      outline: none;
-      font-size: 16px;
-    }
-
-    button.send {
-      background: #ff7ac8;
-      border: none;
-      padding: 10px 14px;
-      border-radius: 14px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>NyaGPT</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+  font-family: sans-serif;
+  background: #0f0f0f;
+  color: white;
+  margin: 0;
+  padding: 10px;
+}
+select, input, button {
+  width: 100%;
+  margin: 6px 0;
+  padding: 10px;
+}
+#chat {
+  min-height: 200px;
+  margin-bottom: 10px;
+}
+.msg {
+  margin-bottom: 6px;
+}
+.bot { color: #7dd3fc; }
+</style>
 </head>
 <body>
 
-<header id="modes"></header>
+<h2>🐱 NyaGPT</h2>
+
+<select id="mode">
+  <option value="nya">🐱 Nya Mode</option>
+  <option value="normal">🧠 Normal</option>
+  <option value="philosopher">🎭 Philosopher</option>
+  <option value="bestie">😏 Bestie</option>
+  <option value="study">🧑‍🏫 Study</option>
+  <option value="creative">🔮 Creative</option>
+</select>
 
 <div id="chat"></div>
 
-<footer>
-  <input id="input" placeholder="Напиши что-нибудь…" />
-  <button class="send" onclick="send()">➤</button>
-</footer>
+<input id="text" placeholder="Напиши сообщение..." />
+<button onclick="send()">Отправить</button>
 
 <script>
-  const API_URL = "https://nyagpt-server.vercel.app/api/chat";
+const chat = document.getElementById("chat");
 
-  const MODES = {
-    nya: "🐱 Nya",
-    smart: "🧠 Smart",
-    philosopher: "🎭 Philosopher",
-    bestie: "😏 Bestie",
-    study: "🧑‍🏫 Study",
-    creative: "🔮 Creative"
-  };
+function add(text, cls) {
+  const div = document.createElement("div");
+  div.className = "msg " + cls;
+  div.innerText = text;
+  chat.appendChild(div);
+}
 
-  let currentMode = "smart";
+async function send() {
+  const text = document.getElementById("text").value;
+  const mode = document.getElementById("mode").value;
+  if (!text) return;
 
-  const modesDiv = document.getElementById("modes");
-  const chat = document.getElementById("chat");
-  const input = document.getElementById("input");
+  add("Ты: " + text);
+  document.getElementById("text").value = "";
 
-  for (const key in MODES) {
-    const btn = document.createElement("button");
-    btn.textContent = MODES[key];
-    btn.onclick = () => setMode(key, btn);
-    if (key === currentMode) btn.classList.add("active");
-    modesDiv.appendChild(btn);
-  }
+  const res = await fetch("https://nyagpt-server.vercel.app/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: text, mode })
+  });
 
-  function setMode(mode, button) {
-    currentMode = mode;
-    document.querySelectorAll("header button").forEach(b => b.classList.remove("active"));
-    button.classList.add("active");
-    addBot(`Режим: ${MODES[mode]}`);
-  }
-
-  function addUser(text) {
-    const div = document.createElement("div");
-    div.className = "msg user";
-    div.textContent = text;
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-  }
-
-  function addBot(text) {
-    const div = document.createElement("div");
-    div.className = "msg bot";
-    div.textContent = text;
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-  }
-
-  async function send() {
-    const text = input.value.trim();
-    if (!text) return;
-
-    input.value = "";
-    addUser(text);
-    addBot("…думаю 🤔");
-
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          message: text,
-          mode: currentMode
-        })
-      });
-
-      const data = await res.json();
-      chat.lastChild.textContent = data.reply || "😿 Пустой ответ";
-    } catch (e) {
-      chat.lastChild.textContent = "😿 Ошибка соединения";
-    }
-  }
+  const data = await res.json();
+  add("Бот: " + data.reply, "bot");
+}
 </script>
 
 </body>
