@@ -1,7 +1,7 @@
 const { Bot, InlineKeyboard } = require("grammy");
 const express = require("express");
 const fetch = require("node-fetch");
-require("dotenv").config();
+require("dotenv").config(); 
 
 const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN);
 const app = express();
